@@ -1,2 +1,65 @@
 # FlareSolverr Go Client
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Code Climate](https://codeclimate.com/github/fahimbagar/go-flaresolverr.png)](https://codeclimate.com/github/fahimbagar/go-flaresolverr)
+[![GitHub issues](https://img.shields.io/github/issues/fahimbagar/go-flaresolverr)](https://github.com/fahimbagar/go-flaresolverr/issues)
+[![CircleCI](https://circleci.com/gh/fahimbagar/go-flaresolverr.svg?style=shield)](https://circleci.com/gh/fahimbagar/go-flaresolverr)
+
+[go-flaresolverr](https://github.com/fahimbagar/go-flaresolverr) is Golang client for [FlareSolverr](https://github.com/FlareSolverr/FlareSolverr).
+
+## Installation
+1. Install [FlareSolverr](https://github.com/FlareSolverr/FlareSolverr#installation)
+2. Get [go-flaresolverr](https://github.com/fahimbagar/go-flaresolverr)
+```shell
+go get github.com/fahimbagar/go-flaresolverr/v3
+```
+
+## Examples
+
+### Get Page
+Retrieves webpage using [`request.get`](https://github.com/FlareSolverr/FlareSolverr#-requestget) command.
+
+```go
+package main
+
+import (
+	"fmt"
+	"log"
+
+	"github.com/PuerkitoBio/goquery"
+
+	"github.com/fahimbagar/go-flaresolverr"
+)
+
+func main() {
+	c, err := flaresolverr.NewClient(flaresolverr.Config{
+		BaseURL: baseURL,
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	b, err := c.Get(flaresolverr.GetParams{
+		URL: "https://ifconfig.me",
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	doc, err := goquery.NewDocumentFromReader(bytes.NewReader(b))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	ipAddress := doc.Find("strong").First().Text()
+	fmt.Println(ipAddress)
+}
+```
+
+## Note
+
+:warning:
+
+Currently, [FlareSolverr v3.0.2](https://github.com/FlareSolverr/FlareSolverr/releases/tag/v3.0.2)
+doesn't support `session` and `proxy`.
+For more detail, see [ChangeLog](https://github.com/FlareSolverr/FlareSolverr/blob/master/CHANGELOG.md#v300-20230104).

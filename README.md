@@ -2,6 +2,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Code Climate](https://codeclimate.com/github/fahimbagar/go-flaresolverr.png)](https://codeclimate.com/github/fahimbagar/go-flaresolverr)
+[![Test Coverage](https://api.codeclimate.com/v1/badges/c8eaaff0f761d4d1f09f/test_coverage)](https://codeclimate.com/github/fahimbagar/go-flaresolverr/test_coverage)
 [![GitHub issues](https://img.shields.io/github/issues/fahimbagar/go-flaresolverr)](https://github.com/fahimbagar/go-flaresolverr/issues)
 [![CircleCI](https://circleci.com/gh/fahimbagar/go-flaresolverr.svg?style=shield)](https://circleci.com/gh/fahimbagar/go-flaresolverr)
 

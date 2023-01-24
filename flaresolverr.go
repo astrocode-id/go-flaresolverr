@@ -93,7 +93,7 @@ type cookie struct {
 	Path     string `json:"path,omitempty"`
 	Domain   string `json:"domain,omitempty"`
 	Expiry   int64  `json:"expiry,omitempty"`
-	HttpOnly bool   `json:"httpOnly,omitempty"`
+	HTTPOnly bool   `json:"httpOnly,omitempty"`
 	Secure   bool   `json:"secure,omitempty"`
 	SameSite string `json:"sameSite,omitempty"`
 }
@@ -121,7 +121,7 @@ func (c Cookies) MarshalJSON() ([]byte, error) {
 			Path:     cs.Path,
 			Domain:   cs.Domain,
 			Expiry:   cs.Expires.Unix(),
-			HttpOnly: cs.HttpOnly,
+			HTTPOnly: cs.HttpOnly,
 			Secure:   cs.Secure,
 			SameSite: sameSite,
 		})
@@ -148,7 +148,7 @@ func (c *Cookies) UnmarshalJSON(b []byte) error {
 			Domain:   cs.Domain,
 			Expires:  t,
 			Secure:   cs.Secure,
-			HttpOnly: cs.HttpOnly,
+			HttpOnly: cs.HTTPOnly,
 			SameSite: 0,
 		})
 	}
@@ -205,6 +205,7 @@ func (c *Client) GetRaw(p GetParams) (Response, error) {
 	return c.requestURL(b)
 }
 
+// PostParams holds parameters for calling Post.
 type PostParams struct {
 	URL               string
 	PostData          url.Values
@@ -213,6 +214,8 @@ type PostParams struct {
 	ReturnOnlyCookies bool
 }
 
+// Post requests web page with method http.Post and returns Solution.Response as raw bytes.
+// For more detail, refer to https://github.com/FlareSolverr/FlareSolverr#-requestpost.
 func (c *Client) Post(p PostParams) ([]byte, error) {
 	r, err := c.PostRaw(p)
 	if err != nil {
@@ -222,6 +225,8 @@ func (c *Client) Post(p PostParams) ([]byte, error) {
 	return r.Solution.Response, nil
 }
 
+// PostRaw requests web page with method http.Post and returns whole Response.
+// For more detail, refer to https://github.com/FlareSolverr/FlareSolverr#-requestpost.
 func (c *Client) PostRaw(p PostParams) (Response, error) {
 	var timeout int
 	switch {
@@ -262,6 +267,7 @@ func (c *Client) requestURL(cmd []byte) (Response, error) {
 	}
 
 	b, err := io.ReadAll(r.Body)
+	defer r.Body.Close()
 	if err != nil {
 		return Response{}, err
 	}

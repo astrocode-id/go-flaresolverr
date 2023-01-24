@@ -12,7 +12,7 @@
 1. Install [FlareSolverr](https://github.com/FlareSolverr/FlareSolverr#installation)
 2. Get [go-flaresolverr](https://github.com/fahimbagar/go-flaresolverr)
 ```shell
-go get github.com/fahimbagar/go-flaresolverr/v3
+go get github.com/fahimbagar/go-flaresolverr
 ```
 
 ## Examples

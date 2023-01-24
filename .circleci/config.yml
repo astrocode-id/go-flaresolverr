@@ -1,26 +1,59 @@
-# Use the latest 2.1 version of CircleCI pipeline process engine.
-# See: https://circleci.com/docs/2.0/configuration-reference
 version: 2.1
+parameters:
+  golangci-lint-version:
+    type: string
+    default: "v1.50.1"
 
-# Define a job to be invoked later in a workflow.
-# See: https://circleci.com/docs/2.0/configuration-reference/#jobs
+  golang-version:
+    type: string
+    default: "1.19"
+
 jobs:
-  say-hello:
-    # Specify the execution environment. You can specify an image from Dockerhub or use one of our Convenience Images from CircleCI's Developer Hub.
-    # See: https://circleci.com/docs/2.0/configuration-reference/#docker-machine-macos-windows-executor
+  test:
     docker:
-      - image: cimg/base:stable
-    # Add steps to the job
-    # See: https://circleci.com/docs/2.0/configuration-reference/#steps
+      - image: cimg/go:<< pipeline.parameters.golang-version >>
+
     steps:
       - checkout
       - run:
-          name: "Say hello"
-          command: "echo Hello, World!"
+          name: Run tests (-race)
+          command: go test -race ./...
 
-# Invoke jobs via workflows
-# See: https://circleci.com/docs/2.0/configuration-reference/#workflows
+  checks:
+    docker:
+      - image: cimg/go:<< pipeline.parameters.golang-version >>
+
+    steps:
+      - checkout
+
+      - restore_cache:
+          key: golangci-lint-<< pipeline.parameters.golangci-lint-version >>
+
+      - run:
+          name: Install golangci-lint
+          command: |
+            BIN_DIR=$(go env GOPATH)/bin
+
+            if [ ! -f "${BIN_DIR}/golangci-lint" ]; then
+                echo "golangci-lint << pipeline.parameters.golangci-lint-version >> not installed yet"
+                curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b ${BIN_DIR} << pipeline.parameters.golangci-lint-version >>
+            fi
+
+      - save_cache:
+          key: golangci-lint-<< pipeline.parameters.golangci-lint-version >>
+          paths:
+            - "/home/circleci/go/bin/golangci-lint"
+
+      - run:
+          name: Run golangci-lint
+          no_output_timeout: 10m
+          # See ../golangci.yml file for the configuration.
+          command: |
+            golangci-lint run ./...
+
 workflows:
-  say-hello-workflow:
+  version: 2
+  test-checks:
     jobs:
-      - say-hello
+      - test
+      - checks

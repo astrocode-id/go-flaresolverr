@@ -45,9 +45,25 @@ jobs:
           command: |
             golangci-lint run ./...
 
+  test-integration:
+    docker:
+      - image: cimg/go:<< pipeline.parameters.golang-version >>
+      - image: ghcr.io/flaresolverr/flaresolverr:latest
+        environment:
+          LOG_LEVEL=info
+
+    steps:
+      - checkout
+      - run:
+          name: Run integration tests
+          command: |
+            go test -timeout=15m -count=1 -tags=integration -race -v ./integration_tests/...
+
+
 workflows:
   version: 2
   test-checks:
     jobs:
       - test
       - checks
+      - test-integration

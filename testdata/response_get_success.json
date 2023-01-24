@@ -1,0 +1,35 @@
+{
+  "status": "ok",
+  "message": "Challenge not detected!",
+  "solution": {
+    "url": "https://try.me/",
+    "status": 200,
+    "cookies": [
+      {
+        "domain": ".try.me",
+        "expiry": 1679759834,
+        "httpOnly": false,
+        "name": "OGPC",
+        "path": "/",
+        "secure": false,
+        "value": "19033459-1:"
+      },
+      {
+        "domain": ".try.me",
+        "expiry": 1677167834,
+        "httpOnly": false,
+        "name": "1P_JAR",
+        "path": "/",
+        "sameSite": "None",
+        "secure": true,
+        "value": "2023-01-24-15"
+      }
+    ],
+    "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36",
+    "headers": {},
+    "response": "<html lang=\"en\">TRY_ME</html>"
+  },
+  "startTimestamp": 1674575494857,
+  "endTimestamp": 1674575499113,
+  "version": "3.0.2"
+}

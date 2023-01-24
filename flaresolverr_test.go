@@ -18,12 +18,10 @@ func TestClient_Get(t *testing.T) {
 		desc              string
 		method            command
 		url               string
-		session           string
 		maxTimeout        int
 		cookies           Cookies
 		returnOnlyCookies bool
-		proxy             string
-		handlerFunc       func(t *testing.T, p getRequest) http.HandlerFunc
+		handlerFunc       func(t *testing.T, p requestParams) http.HandlerFunc
 		expected          Response
 		isError           assert.ErrorAssertionFunc
 	}{
@@ -31,7 +29,6 @@ func TestClient_Get(t *testing.T) {
 			desc:       "GET url with no error returns response",
 			method:     get,
 			url:        "https://try.me",
-			session:    "",
 			maxTimeout: 5000,
 			cookies: Cookies{
 				{
@@ -43,14 +40,13 @@ func TestClient_Get(t *testing.T) {
 				},
 			},
 			returnOnlyCookies: false,
-			proxy:             "",
-			handlerFunc: func(t *testing.T, p getRequest) http.HandlerFunc {
+			handlerFunc: func(t *testing.T, p requestParams) http.HandlerFunc {
 				return func(w http.ResponseWriter, r *http.Request) {
 					b, err := io.ReadAll(r.Body)
 					defer r.Body.Close()
 					assert.NoError(t, err)
 
-					var test getRequest
+					var test requestParams
 					err = json.Unmarshal(b, &test)
 					assert.NoError(t, err)
 					assert.Equal(t, p, test)
@@ -98,7 +94,6 @@ func TestClient_Get(t *testing.T) {
 			desc:       "GET url with error returns error",
 			method:     get,
 			url:        "https://try.me",
-			session:    "",
 			maxTimeout: 5000,
 			cookies: Cookies{
 				{
@@ -110,14 +105,13 @@ func TestClient_Get(t *testing.T) {
 				},
 			},
 			returnOnlyCookies: false,
-			proxy:             "",
-			handlerFunc: func(t *testing.T, p getRequest) http.HandlerFunc {
+			handlerFunc: func(t *testing.T, p requestParams) http.HandlerFunc {
 				return func(w http.ResponseWriter, r *http.Request) {
 					b, err := io.ReadAll(r.Body)
 					defer r.Body.Close()
 					assert.NoError(t, err)
 
-					var test getRequest
+					var test requestParams
 					err = json.Unmarshal(b, &test)
 					assert.NoError(t, err)
 					assert.Equal(t, p, test)
@@ -143,14 +137,12 @@ func TestClient_Get(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.desc, func(t *testing.T) {
-			ts := httptest.NewServer(test.handlerFunc(t, getRequest{
+			ts := httptest.NewServer(test.handlerFunc(t, requestParams{
 				Cmd:               test.method,
 				URL:               test.url,
-				Session:           test.session,
 				MaxTimeout:        test.maxTimeout,
 				Cookies:           test.cookies,
 				ReturnOnlyCookies: test.returnOnlyCookies,
-				Proxy:             test.proxy,
 			}))
 			defer ts.Close()
 
@@ -162,11 +154,9 @@ func TestClient_Get(t *testing.T) {
 
 			resp, err := c.GetRaw(GetParams{
 				URL:               test.url,
-				Session:           test.session,
 				MaxTimeout:        test.maxTimeout,
 				Cookies:           test.cookies,
 				ReturnOnlyCookies: test.returnOnlyCookies,
-				Proxy:             test.proxy,
 			})
 			test.isError(t, err)
 			assert.Equal(t, test.expected, resp)
@@ -180,12 +170,10 @@ func TestClient_Post(t *testing.T) {
 		method            command
 		url               string
 		postDate          url.Values
-		session           string
 		maxTimeout        int
 		cookies           Cookies
 		returnOnlyCookies bool
-		proxy             string
-		handlerFunc       func(t *testing.T, p postRequest) http.HandlerFunc
+		handlerFunc       func(t *testing.T, p requestParams) http.HandlerFunc
 		expected          Response
 		isError           assert.ErrorAssertionFunc
 	}{
@@ -197,7 +185,6 @@ func TestClient_Post(t *testing.T) {
 				"q": {"test1"},
 				"v": {"test2"},
 			},
-			session:    "",
 			maxTimeout: 5000,
 			cookies: Cookies{
 				{
@@ -209,14 +196,13 @@ func TestClient_Post(t *testing.T) {
 				},
 			},
 			returnOnlyCookies: false,
-			proxy:             "",
-			handlerFunc: func(t *testing.T, p postRequest) http.HandlerFunc {
+			handlerFunc: func(t *testing.T, p requestParams) http.HandlerFunc {
 				return func(w http.ResponseWriter, r *http.Request) {
 					b, err := io.ReadAll(r.Body)
 					defer r.Body.Close()
 					assert.NoError(t, err)
 
-					var test postRequest
+					var test requestParams
 					err = json.Unmarshal(b, &test)
 					assert.NoError(t, err)
 					assert.Equal(t, p, test)
@@ -248,7 +234,6 @@ func TestClient_Post(t *testing.T) {
 			desc:       "POST url with error returns error",
 			method:     post,
 			url:        "https://try.me/form-post-tester.php",
-			session:    "",
 			maxTimeout: 5000,
 			cookies: Cookies{
 				{
@@ -260,14 +245,13 @@ func TestClient_Post(t *testing.T) {
 				},
 			},
 			returnOnlyCookies: false,
-			proxy:             "",
-			handlerFunc: func(t *testing.T, p postRequest) http.HandlerFunc {
+			handlerFunc: func(t *testing.T, p requestParams) http.HandlerFunc {
 				return func(w http.ResponseWriter, r *http.Request) {
 					b, err := io.ReadAll(r.Body)
 					defer r.Body.Close()
 					assert.NoError(t, err)
 
-					var test postRequest
+					var test requestParams
 					err = json.Unmarshal(b, &test)
 					assert.NoError(t, err)
 					assert.Equal(t, p, test)
@@ -293,14 +277,12 @@ func TestClient_Post(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.desc, func(t *testing.T) {
-			ts := httptest.NewServer(test.handlerFunc(t, postRequest{
+			ts := httptest.NewServer(test.handlerFunc(t, requestParams{
 				Cmd:               test.method,
 				URL:               test.url,
-				Session:           test.session,
 				MaxTimeout:        test.maxTimeout,
 				Cookies:           test.cookies,
 				ReturnOnlyCookies: test.returnOnlyCookies,
-				Proxy:             test.proxy,
 			}))
 			defer ts.Close()
 
@@ -312,11 +294,9 @@ func TestClient_Post(t *testing.T) {
 
 			resp, err := c.PostRaw(PostParams{
 				URL:               test.url,
-				Session:           test.session,
 				MaxTimeout:        test.maxTimeout,
 				Cookies:           test.cookies,
 				ReturnOnlyCookies: test.returnOnlyCookies,
-				Proxy:             test.proxy,
 			})
 			test.isError(t, err)
 			assert.Equal(t, test.expected, resp)

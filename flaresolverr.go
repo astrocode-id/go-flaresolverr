@@ -158,24 +158,12 @@ func (c *Cookies) UnmarshalJSON(b []byte) error {
 
 // GetParams holds parameters for calling Get.
 type GetParams struct {
-	URL     string
-	Session string
+	URL string
 	// MaxTimeout to solve the challenge in milliseconds for current API
 	// It replaces global timeout from Config.Timeout. Default: No timeout.
 	MaxTimeout        int
 	Cookies           Cookies
 	ReturnOnlyCookies bool
-	Proxy             string
-}
-
-type getRequest struct {
-	Cmd               command `json:"cmd"`
-	URL               string  `json:"url"`
-	Session           string  `json:"session"`
-	MaxTimeout        int     `json:"maxTimeout"`
-	Cookies           Cookies `json:"cookies"`
-	ReturnOnlyCookies bool    `json:"returnOnlyCookies"`
-	Proxy             string  `json:"proxy"`
 }
 
 // Get requests web page with method http.Get and returns Solution.Response as raw bytes.
@@ -203,14 +191,12 @@ func (c *Client) GetRaw(p GetParams) (Response, error) {
 	case c.timeout > 0:
 		timeout = c.timeout
 	}
-	b, err := json.Marshal(getRequest{
+	b, err := json.Marshal(requestParams{
 		Cmd:               get,
 		URL:               p.URL,
-		Session:           p.Session,
 		MaxTimeout:        timeout,
 		Cookies:           p.Cookies,
 		ReturnOnlyCookies: p.ReturnOnlyCookies,
-		Proxy:             p.Proxy,
 	})
 	if err != nil {
 		return Response{}, err
@@ -222,22 +208,9 @@ func (c *Client) GetRaw(p GetParams) (Response, error) {
 type PostParams struct {
 	URL               string
 	PostData          url.Values
-	Session           string
 	MaxTimeout        int
 	Cookies           Cookies
 	ReturnOnlyCookies bool
-	Proxy             string
-}
-
-type postRequest struct {
-	Cmd               command `json:"cmd"`
-	URL               string  `json:"url"`
-	PostData          string  `json:"postData"`
-	Session           string  `json:"session"`
-	MaxTimeout        int     `json:"maxTimeout"`
-	Cookies           Cookies `json:"cookies"`
-	ReturnOnlyCookies bool    `json:"returnOnlyCookies"`
-	Proxy             string  `json:"proxy"`
 }
 
 func (c *Client) Post(p PostParams) ([]byte, error) {
@@ -257,21 +230,28 @@ func (c *Client) PostRaw(p PostParams) (Response, error) {
 	case c.timeout > 0:
 		timeout = c.timeout
 	}
-	b, err := json.Marshal(postRequest{
+	b, err := json.Marshal(requestParams{
 		Cmd:               post,
 		URL:               p.URL,
 		PostData:          p.PostData.Encode(),
-		Session:           p.Session,
 		MaxTimeout:        timeout,
 		Cookies:           p.Cookies,
 		ReturnOnlyCookies: p.ReturnOnlyCookies,
-		Proxy:             p.Proxy,
 	})
 	if err != nil {
 		return Response{}, err
 	}
 
 	return c.requestURL(b)
+}
+
+type requestParams struct {
+	Cmd               command `json:"cmd"`
+	URL               string  `json:"url"`
+	PostData          string  `json:"postData,omitempty"`
+	MaxTimeout        int     `json:"maxTimeout,omitempty"`
+	Cookies           Cookies `json:"cookies,omitempty"`
+	ReturnOnlyCookies bool    `json:"returnOnlyCookies,omitempty"`
 }
 
 func (c *Client) requestURL(cmd []byte) (Response, error) {

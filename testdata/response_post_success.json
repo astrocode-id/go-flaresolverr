@@ -1,0 +1,15 @@
+{
+  "status": "ok",
+  "message": "Challenge not detected!",
+  "solution": {
+    "url": "https://try.me/form-post-tester.php",
+    "status": 200,
+    "cookies": [],
+    "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36",
+    "headers": {},
+    "response": "<html><head><meta name=\"color-scheme\" content=\"light dark\"></head><body><pre style=\"word-wrap: break-word; white-space: pre-wrap;\">The POSTed value is:\n********************\nkey1=valueA&amp;key2=valueB\n********************\n\n\nThe Headers are:\n********************\nHost: www.hashemian.com\nConnection: Keep-Alive\nAccept-Encoding: gzip\nX-Forwarded-For: 45.77.173.90\nCF-RAY: 78ea349188884cdd-EWR\nContent-Length: 23\nX-Forwarded-Proto: https\nCF-Visitor: {\"scheme\":\"https\"}\ncache-control: max-age=0\nsec-ch-ua: \"Not?A_Brand\";v=\"8\", \"Chromium\";v=\"108\"\nsec-ch-ua-mobile: ?0\nsec-ch-ua-platform: \"Linux\"\nupgrade-insecure-requests: 1\norigin: null\ncontent-type: application/x-www-form-urlencoded\nuser-agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36\naccept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9\nsec-fetch-site: cross-site\nsec-fetch-mode: navigate\nsec-fetch-dest: document\naccept-language: en-US,en;q=0.9\nCF-Connecting-IP: 45.77.173.90\nCF-IPCountry: SG\nCDN-Loop: cloudflare\n********************\n\n</pre></body></html>"
+  },
+  "startTimestamp": 1674578364632,
+  "endTimestamp": 1674578368933,
+  "version": "3.0.2"
+}

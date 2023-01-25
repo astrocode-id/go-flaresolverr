@@ -64,6 +64,6 @@ _TODO_
 
 ## Note
 
-- :warning: Currently, [FlareSolverr v3.0.2](https://github.com/FlareSolverr/FlareSolverr/releases/tag/v3.0.2)
+- :warning: Currently, [FlareSolverr v3](https://github.com/FlareSolverr/FlareSolverr/releases)
 doesn't support `session` and `proxy`.
 For more detail, see [ChangeLog](https://github.com/FlareSolverr/FlareSolverr/blob/master/CHANGELOG.md#v300-20230104).

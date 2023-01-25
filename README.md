@@ -6,7 +6,7 @@
 [![GitHub issues](https://img.shields.io/github/issues/fahimbagar/go-flaresolverr)](https://github.com/fahimbagar/go-flaresolverr/issues)
 [![CircleCI](https://circleci.com/gh/fahimbagar/go-flaresolverr.svg?style=shield)](https://circleci.com/gh/fahimbagar/go-flaresolverr)
 
-[go-flaresolverr](https://github.com/fahimbagar/go-flaresolverr) is Golang client for [FlareSolverr](https://github.com/FlareSolverr/FlareSolverr) v3. https://github.com/FlareSolverr/FlareSolverr/releases/tag/v3.0.0
+[go-flaresolverr](https://github.com/fahimbagar/go-flaresolverr) is Golang client for [FlareSolverr](https://github.com/FlareSolverr/FlareSolverr) v3.
 
 ## Installation
 1. Install [FlareSolverr](https://github.com/FlareSolverr/FlareSolverr#installation)

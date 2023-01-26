@@ -24,4 +24,4 @@ linters:
 
 linters-settings:
   goimports:
-    local-prefixes: github.com/fahimbagar/go-flaresolverr
+    local-prefixes: github.com/astrocode-id/go-flaresolverr

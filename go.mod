@@ -1,4 +1,4 @@
-module github.com/fahimbagar/go-flaresolverr
+module github.com/astrocode-id/go-flaresolverr
 
 go 1.19
 

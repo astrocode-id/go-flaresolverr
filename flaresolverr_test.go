@@ -14,6 +14,8 @@ import (
 )
 
 func TestClient_Get(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		desc              string
 		method            command
@@ -134,7 +136,6 @@ func TestClient_Get(t *testing.T) {
 			isError: assert.NoError,
 		},
 	}
-
 	for _, test := range tests {
 		t.Run(test.desc, func(t *testing.T) {
 			ts := httptest.NewServer(test.handlerFunc(t, requestParams{
@@ -165,6 +166,8 @@ func TestClient_Get(t *testing.T) {
 }
 
 func TestClient_Post(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		desc              string
 		method            command
@@ -274,7 +277,6 @@ func TestClient_Post(t *testing.T) {
 			isError: assert.NoError,
 		},
 	}
-
 	for _, test := range tests {
 		t.Run(test.desc, func(t *testing.T) {
 			ts := httptest.NewServer(test.handlerFunc(t, requestParams{

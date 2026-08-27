@@ -141,6 +141,7 @@ func (c *Cookies) UnmarshalJSON(b []byte) error {
 	*c = make(Cookies, 0, len(cookies))
 	for _, cs := range cookies {
 		t := time.Unix(cs.Expiry, 0)
+		//nolint:gosec
 		*c = append(*c, http.Cookie{
 			Name:     cs.Name,
 			Value:    cs.Value,
@@ -149,7 +150,7 @@ func (c *Cookies) UnmarshalJSON(b []byte) error {
 			Expires:  t,
 			Secure:   cs.Secure,
 			HttpOnly: cs.HTTPOnly,
-			SameSite: 0,
+			SameSite: 0, // TODO: fix in next version.
 		})
 	}
 

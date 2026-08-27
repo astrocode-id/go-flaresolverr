@@ -3,6 +3,7 @@
 package integration
 
 import (
+	"context"
 	"fmt"
 	"net"
 	"net/url"
@@ -10,9 +11,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ory/dockertest/v3"
-	"github.com/ory/dockertest/v3/docker"
 	"github.com/stretchr/testify/assert"
+	"github.com/testcontainers/testcontainers-go"
+	"github.com/testcontainers/testcontainers-go/wait"
 
 	"github.com/astrocode-id/go-flaresolverr"
 )
@@ -21,35 +22,26 @@ import (
 // of the surrounding HTML/JSON structure.
 var ipv4Pattern = regexp.MustCompile(`\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b`)
 
-const (
-	containerName = "flaresolverr"
-	// flaresolverrVersion is pinned (instead of "latest") so the pulled image
-	// is reproducible and cacheable in CI.
-	// https://github.com/FlareSolverr/FlareSolverr/releases
-	flaresolverrVersion = "v3.5.0"
-)
+// flaresolverrVersion is pinned (instead of "latest") so the pulled image
+// is reproducible and cacheable in CI.
+// https://github.com/FlareSolverr/FlareSolverr/releases
+const flaresolverrVersion = "v3.5.0"
 
 func TestFlareSolverr(t *testing.T) {
-	pool, err := dockertest.NewPool("")
+	ctx := context.Background()
+
+	container, err := testcontainers.Run(ctx, "ghcr.io/flaresolverr/flaresolverr:"+flaresolverrVersion,
+		testcontainers.WithEnv(map[string]string{
+			"LOG_LEVEL": "debug",
+		}),
+		testcontainers.WithExposedPorts("8191/tcp"),
+		testcontainers.WithWaitStrategy(wait.ForListeningPort("8191/tcp")),
+	)
 	assert.NoError(t, err)
 
-	_ = pool.RemoveContainerByName(containerName)
-	resource, err := pool.RunWithOptions(&dockertest.RunOptions{
-		Name:       containerName,
-		Repository: "ghcr.io/flaresolverr/flaresolverr",
-		Tag:        flaresolverrVersion,
-		Env: []string{
-			"LOG_LEVEL=debug",
-		},
-	}, func(config *docker.HostConfig) {
-		config.AutoRemove = true
-		config.RestartPolicy = docker.RestartPolicy{
-			Name: "no",
-		}
-	})
+	baseURL, err := container.PortEndpoint(ctx, "8191/tcp", "http")
 	assert.NoError(t, err)
-
-	baseURL := fmt.Sprintf("http://%s/v1", resource.GetHostPort("8191/tcp"))
+	baseURL += "/v1"
 
 	<-time.After(5 * time.Second)
 
@@ -80,6 +72,6 @@ func TestFlareSolverr(t *testing.T) {
 	assert.Contains(t, postResp.Solution.Response, "valueA")
 	assert.Contains(t, postResp.Solution.Response, "valueB")
 
-	err = pool.Purge(resource)
+	err = container.Terminate(ctx)
 	assert.NoError(t, err)
 }

@@ -1,10 +1,8 @@
 # FlareSolverr v3 Go Client
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Code Climate](https://codeclimate.com/github/astrocode-id/go-flaresolverr.png)](https://codeclimate.com/github/astrocode-id/go-flaresolverr)
-[![Test Coverage](https://api.codeclimate.com/v1/badges/c8eaaff0f761d4d1f09f/test_coverage)](https://codeclimate.com/github/astrocode-id/go-flaresolverr/test_coverage)
 [![GitHub issues](https://img.shields.io/github/issues/astrocode-id/go-flaresolverr)](https://github.com/astrocode-id/go-flaresolverr/issues)
-[![CircleCI](https://circleci.com/gh/astrocode-id/go-flaresolverr.svg?style=shield)](https://circleci.com/gh/astrocode-id/go-flaresolverr)
+[![static analysis](https://github.com/astrocode-id/go-flaresolverr/actions/workflows/static-analysis.yml/badge.svg)](https://github.com/astrocode-id/go-flaresolverr/actions/workflows/static-analysis.yml)
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fastrocode-id%2Fgo-flaresolverr.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fastrocode-id%2Fgo-flaresolverr?ref=badge_shield)
 
 [go-flaresolverr](https://github.com/astrocode-id/go-flaresolverr) is Golang client for [FlareSolverr](https://github.com/FlareSolverr/FlareSolverr) v3.
@@ -61,14 +59,45 @@ func main() {
 ### Post Page
 Retrieves webpage using [`request.post`](https://github.com/FlareSolverr/FlareSolverr#-requestpost) command.
 
+```go
+package main
+
+import (
+	"fmt"
+	"log"
+	"net/url"
+
+	"github.com/astrocode-id/go-flaresolverr"
+)
+
+func main() {
+	c, err := flaresolverr.NewClient(flaresolverr.Config{
+		BaseURL: baseURL,
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	b, err := c.Post(flaresolverr.PostParams{
+		URL: "https://httpbin.org/post",
+		PostData: url.Values{
+			"key1": {"valueA"},
+			"key2": {"valueB"},
+		},
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println(string(b))
+}
+```
+
+### Session
 _TODO_
 
-## Note
-
-- :warning: Currently, [FlareSolverr v3](https://github.com/FlareSolverr/FlareSolverr/releases)
-doesn't support `session` and `proxy`.
-For more detail, see [ChangeLog](https://github.com/FlareSolverr/FlareSolverr/blob/master/CHANGELOG.md#v300-20230104).
-
+### Proxy
+_TODO_
 
 ## License
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fastrocode-id%2Fgo-flaresolverr.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fastrocode-id%2Fgo-flaresolverr?ref=badge_large)

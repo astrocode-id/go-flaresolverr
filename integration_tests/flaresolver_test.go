@@ -3,20 +3,23 @@
 package integration
 
 import (
-	"bytes"
 	"fmt"
 	"net"
-	"strings"
+	"net/url"
+	"regexp"
 	"testing"
 	"time"
 
-	"github.com/PuerkitoBio/goquery"
 	"github.com/ory/dockertest/v3"
 	"github.com/ory/dockertest/v3/docker"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/astrocode-id/go-flaresolverr"
 )
+
+// ipv4Pattern matches an IPv4 address anywhere in a page's text, regardless
+// of the surrounding HTML/JSON structure.
+var ipv4Pattern = regexp.MustCompile(`\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b`)
 
 const (
 	containerName = "flaresolverr"
@@ -56,20 +59,26 @@ func TestFlareSolverr(t *testing.T) {
 	})
 	assert.NoError(t, err)
 
-	b, err := c.Get(flaresolverr.GetParams{
-		URL: "https://ifconfig.me",
+	// httpbin.org/ip is a well-known, long-standing service that just
+	// echoes back the caller's IP, so it's a stable target for testing
+	// request.get.
+	getResp, err := c.Get("https://httpbin.org/ip")
+	assert.NoError(t, err)
+
+	ipAddress := ipv4Pattern.FindString(getResp.Solution.Response)
+	assert.NotEmpty(t, ipAddress)
+	assert.NotNil(t, net.ParseIP(ipAddress))
+
+	// httpbin.org/post is a well-known, long-standing service that just
+	// echoes back the posted form data, so it's a stable target for testing
+	// request.post.
+	postResp, err := c.Post("https://httpbin.org/post", url.Values{
+		"key1": {"valueA"},
+		"key2": {"valueB"},
 	})
 	assert.NoError(t, err)
-
-	doc, err := goquery.NewDocumentFromReader(bytes.NewReader(b))
-	assert.NoError(t, err)
-
-	ipAddress := doc.Find("strong").First().Text()
-	// FlareSolverr returns the response body JSON-escaped but undecoded, so
-	// literal `\n` (backslash+n) sequences show up in the text alongside real
-	// whitespace; strip both before parsing.
-	ipAddress = strings.Trim(ipAddress, "\\n \t\r\n")
-	assert.NotNil(t, net.ParseIP(ipAddress))
+	assert.Contains(t, postResp.Solution.Response, "valueA")
+	assert.Contains(t, postResp.Solution.Response, "valueB")
 
 	err = pool.Purge(resource)
 	assert.NoError(t, err)

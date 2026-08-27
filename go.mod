@@ -3,7 +3,6 @@ module github.com/astrocode-id/go-flaresolverr
 go 1.19
 
 require (
-	github.com/PuerkitoBio/goquery v1.8.0
 	github.com/ory/dockertest/v3 v3.9.1
 	github.com/stretchr/testify v1.8.1
 )
@@ -12,7 +11,6 @@ require (
 	github.com/Azure/go-ansiterm v0.0.0-20170929234023-d6e3b3328b78 // indirect
 	github.com/Microsoft/go-winio v0.5.2 // indirect
 	github.com/Nvveen/Gotty v0.0.0-20120604004816-cd527374f1e5 // indirect
-	github.com/andybalholm/cascadia v1.3.1 // indirect
 	github.com/cenkalti/backoff/v4 v4.1.3 // indirect
 	github.com/containerd/continuity v0.3.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect

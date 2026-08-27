@@ -23,10 +23,9 @@ Retrieves webpage using [`request.get`](https://github.com/FlareSolverr/FlareSol
 package main
 
 import (
+	"errors"
 	"fmt"
 	"log"
-
-	"github.com/PuerkitoBio/goquery"
 
 	"github.com/astrocode-id/go-flaresolverr"
 )
@@ -39,20 +38,17 @@ func main() {
 		log.Fatal(err)
 	}
 
-	b, err := c.Get(flaresolverr.GetParams{
-		URL: "https://ifconfig.me",
-	})
+	r, err := c.Get("https://httpbin.org/ip",
+		flaresolverr.WithMaxTimeout(60000),
+	)
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	doc, err := goquery.NewDocumentFromReader(bytes.NewReader(b))
-	if err != nil {
-		log.Fatal(err)
+	if r.Status != "ok" {
+		log.Fatal(errors.New(r.Message))
 	}
 
-	ipAddress := doc.Find("strong").First().Text()
-	fmt.Println(ipAddress)
+	fmt.Println(r.Solution.Response)
 }
 ```
 
@@ -63,6 +59,7 @@ Retrieves webpage using [`request.post`](https://github.com/FlareSolverr/FlareSo
 package main
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"net/url"
@@ -78,26 +75,41 @@ func main() {
 		log.Fatal(err)
 	}
 
-	b, err := c.Post(flaresolverr.PostParams{
-		URL: "https://httpbin.org/post",
-		PostData: url.Values{
-			"key1": {"valueA"},
-			"key2": {"valueB"},
-		},
+	r, err := c.Post("https://httpbin.org/post", url.Values{
+		"key1": {"valueA"},
+		"key2": {"valueB"},
 	})
 	if err != nil {
 		log.Fatal(err)
 	}
+	if r.Status != "ok" {
+		log.Fatal(errors.New(r.Message))
+	}
 
-	fmt.Println(string(b))
+	fmt.Println(r.Solution.Response)
 }
 ```
 
+### Options
+Both `Get` and `Post` accept optional parameters, which map to the
+[base parameters](https://github.com/FlareSolverr/FlareSolverr#-requestget)
+supported by the FlareSolverr API:
+
+- `WithMaxTimeout(ms int)`
+- `WithCookies(cookies flaresolverr.Cookies)`
+- `WithReturnOnlyCookies(v bool)`
+- `WithWaitInSeconds(s int)`
+- `WithDisableMedia(v bool)`
+
+`session`, `session_ttl_minutes`, `proxy`, `returnScreenshot`, and
+`tabs_till_verify` are part of the FlareSolverr API but aren't supported by
+this client yet.
+
 ### Session
-_TODO_
+_TODO_: not supported yet.
 
 ### Proxy
-_TODO_
+_TODO_: not supported yet.
 
 ## License
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fastrocode-id%2Fgo-flaresolverr.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fastrocode-id%2Fgo-flaresolverr?ref=badge_large)

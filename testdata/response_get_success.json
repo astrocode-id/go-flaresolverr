@@ -7,7 +7,7 @@
     "cookies": [
       {
         "domain": ".try.me",
-        "expiry": 1679759834,
+        "expires": 1679759834,
         "httpOnly": false,
         "name": "OGPC",
         "path": "/",
@@ -16,7 +16,7 @@
       },
       {
         "domain": ".try.me",
-        "expiry": 1677167834,
+        "expires": 1677167834,
         "httpOnly": false,
         "name": "1P_JAR",
         "path": "/",

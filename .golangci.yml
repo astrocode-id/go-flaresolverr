@@ -34,10 +34,6 @@ linters:
         text: ^(unused-parameter)|(.*is unused)
 
       - linters:
-          - revive
-        path: "integration_tests"
-
-      - linters:
           - paralleltest
         path: "integration_tests"
 

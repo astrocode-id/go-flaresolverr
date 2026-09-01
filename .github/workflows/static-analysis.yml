@@ -13,7 +13,7 @@ on:
 env:
   # https://github.com/golangci/golangci-lint/releases
   GOLANGCI_LINT_VERSION: "v2.12.2"
-  # Keep in sync with flaresolverrVersion in integration_tests/flaresolver_test.go
+  # Keep in sync with flaresolverrURL default in integration_tests/flaresolver_test.go
   # https://github.com/FlareSolverr/FlareSolverr/releases
   FLARESOLVERR_IMAGE: "ghcr.io/flaresolverr/flaresolverr:v3.5.0"
 
@@ -41,10 +41,10 @@ jobs:
   integration-test:
     runs-on: ubuntu-latest
     services:
-      dind:
-        image: public.ecr.aws/docker/library/docker:24.0-dind-rootless
+      flaresolverr:
+        image: ${{ env.FLARESOLVERR_IMAGE }}
         ports:
-          - 2375:2375
+          - 8191:8191
     steps:
       - uses: actions/checkout@v6
 
@@ -52,24 +52,9 @@ jobs:
         with:
           go-version-file: go.mod
 
-      - name: Cache FlareSolverr image
-        id: cache-flaresolverr-image
-        uses: actions/cache@v4
-        with:
-          path: /tmp/flaresolverr-image.tar
-          key: flaresolverr-image-${{ env.FLARESOLVERR_IMAGE }}
-
-      - name: Load cached FlareSolverr image
-        if: steps.cache-flaresolverr-image.outputs.cache-hit == 'true'
-        run: docker load -i /tmp/flaresolverr-image.tar
-
-      - name: Pull and save FlareSolverr image
-        if: steps.cache-flaresolverr-image.outputs.cache-hit != 'true'
-        run: |
-          docker pull "${FLARESOLVERR_IMAGE}"
-          docker save "${FLARESOLVERR_IMAGE}" -o /tmp/flaresolverr-image.tar
-
       - name: Run Integration Tests
+        env:
+          FLARESOLVERR_URL: http://localhost:8191/v1
         run: |
           go test -v -race -timeout=15m -tags=integration ./integration_tests/...
 

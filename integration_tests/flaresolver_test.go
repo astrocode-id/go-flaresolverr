@@ -3,59 +3,44 @@
 package integration
 
 import (
-	"context"
-	"fmt"
 	"net"
 	"net/url"
+	"os"
 	"regexp"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/testcontainers/testcontainers-go"
-	"github.com/testcontainers/testcontainers-go/wait"
+	"github.com/stretchr/testify/require"
 
-	"github.com/astrocode-id/go-flaresolverr"
+	flaresolverr "github.com/astrocode-id/go-flaresolverr/v2"
 )
 
 // ipv4Pattern matches an IPv4 address anywhere in a page's text, regardless
 // of the surrounding HTML/JSON structure.
 var ipv4Pattern = regexp.MustCompile(`\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b`)
 
-// flaresolverrVersion is pinned (instead of "latest") so the pulled image
-// is reproducible and cacheable in CI.
-// https://github.com/FlareSolverr/FlareSolverr/releases
-const flaresolverrVersion = "v3.5.0"
+// flaresolverrURLEnv points the test at a running FlareSolverr instance.
+// It's provided by CI as a service container and, for local runs, is
+// expected to be started separately (e.g. `docker run -p 8191:8191
+// ghcr.io/flaresolverr/flaresolverr:v3.5.0`).
+const flaresolverrURLEnv = "FLARESOLVERR_URL"
 
 func TestFlareSolverr(t *testing.T) {
-	ctx := context.Background()
+	baseURL := os.Getenv(flaresolverrURLEnv)
+	if baseURL == "" {
+		baseURL = "http://localhost:8191/v1"
+	}
 
-	container, err := testcontainers.Run(ctx, "ghcr.io/flaresolverr/flaresolverr:"+flaresolverrVersion,
-		testcontainers.WithEnv(map[string]string{
-			"LOG_LEVEL": "debug",
-		}),
-		testcontainers.WithExposedPorts("8191/tcp"),
-		testcontainers.WithWaitStrategy(wait.ForListeningPort("8191/tcp")),
-	)
-	assert.NoError(t, err)
-
-	baseURL, err := container.PortEndpoint(ctx, "8191/tcp", "http")
-	assert.NoError(t, err)
-	baseURL += "/v1"
-
-	<-time.After(5 * time.Second)
-
-	fmt.Println("connect to FlareSolverr base URL: " + baseURL)
 	c, err := flaresolverr.NewClient(flaresolverr.Config{
 		BaseURL: baseURL,
 	})
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// httpbin.org/ip is a well-known, long-standing service that just
 	// echoes back the caller's IP, so it's a stable target for testing
 	// request.get.
 	getResp, err := c.Get("https://httpbin.org/ip")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	ipAddress := ipv4Pattern.FindString(getResp.Solution.Response)
 	assert.NotEmpty(t, ipAddress)
@@ -68,10 +53,7 @@ func TestFlareSolverr(t *testing.T) {
 		"key1": {"valueA"},
 		"key2": {"valueB"},
 	})
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Contains(t, postResp.Solution.Response, "valueA")
 	assert.Contains(t, postResp.Solution.Response, "valueB")
-
-	err = container.Terminate(ctx)
-	assert.NoError(t, err)
 }

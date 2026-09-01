@@ -13,9 +13,6 @@ on:
 env:
   # https://github.com/golangci/golangci-lint/releases
   GOLANGCI_LINT_VERSION: "v2.12.2"
-  # Keep in sync with flaresolverrURL default in integration_tests/flaresolver_test.go
-  # https://github.com/FlareSolverr/FlareSolverr/releases
-  FLARESOLVERR_IMAGE: "ghcr.io/flaresolverr/flaresolverr:v3.5.0"
 
 # Concurrent runs limit per branch level.
 # https://docs.github.com/en/enterprise-cloud@latest/actions/using-jobs/using-concurrency#example-using-concurrency-and-the-default-behavior
@@ -42,7 +39,9 @@ jobs:
     runs-on: ubuntu-latest
     services:
       flaresolverr:
-        image: ${{ env.FLARESOLVERR_IMAGE }}
+        # https://github.com/FlareSolverr/FlareSolverr/releases
+        # Keep in sync with flaresolverrURL default in integration_tests/flaresolver_test.go
+        image: "ghcr.io/flaresolverr/flaresolverr:v3.5.0"
         ports:
           - 8191:8191
     steps:

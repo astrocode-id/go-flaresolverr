@@ -1,13 +1,12 @@
 name: static analysis
 
 on:
+  # Only main, not every branch: pull_request below already covers every
+  # branch with an open PR, so a push to one of those would otherwise
+  # trigger this workflow twice for the same commit.
   push:
-    # Run on all branches but not on tags.
-    # https://github.com/orgs/community/discussions/25615
     branches:
-      - "**"
-    tags:
-      - "!**"
+      - main
   # push alone never fires for a PR opened from a fork, since the commit
   # only exists in the fork; pull_request covers that case too.
   pull_request:
@@ -27,7 +26,7 @@ concurrency:
 
 jobs:
 
-  build-test:
+  test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6

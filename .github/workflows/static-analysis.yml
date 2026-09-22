@@ -8,6 +8,11 @@ on:
       - "**"
     tags:
       - "!**"
+  # push alone never fires for a PR opened from a fork, since the commit
+  # only exists in the fork; pull_request covers that case too.
+  pull_request:
+    branches:
+      - main
   workflow_dispatch:
 
 env:

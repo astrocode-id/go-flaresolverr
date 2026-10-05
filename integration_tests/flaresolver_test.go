@@ -3,11 +3,13 @@
 package integration
 
 import (
+	"context"
 	"net"
 	"net/url"
 	"os"
 	"regexp"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -25,7 +27,9 @@ var ipv4Pattern = regexp.MustCompile(`\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b`)
 // ghcr.io/flaresolverr/flaresolverr:v3.5.0`).
 const flaresolverrURLEnv = "FLARESOLVERR_URL"
 
-func TestFlareSolverr(t *testing.T) {
+func newClient(t *testing.T) *flaresolverr.Client {
+	t.Helper()
+
 	baseURL := os.Getenv(flaresolverrURLEnv)
 	if baseURL == "" {
 		baseURL = "http://localhost:8191/v1"
@@ -35,6 +39,12 @@ func TestFlareSolverr(t *testing.T) {
 		BaseURL: baseURL,
 	})
 	require.NoError(t, err)
+
+	return c
+}
+
+func TestFlareSolverr(t *testing.T) {
+	c := newClient(t)
 
 	// httpbin.org/ip is a well-known, long-standing service that just
 	// echoes back the caller's IP, so it's a stable target for testing
@@ -56,4 +66,46 @@ func TestFlareSolverr(t *testing.T) {
 	require.NoError(t, err)
 	assert.Contains(t, postResp.Solution.Response, "valueA")
 	assert.Contains(t, postResp.Solution.Response, "valueB")
+}
+
+func TestFlareSolverrContext(t *testing.T) {
+	c := newClient(t)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
+	defer cancel()
+
+	getResp, err := c.GetContext(ctx, "https://httpbin.org/ip")
+	require.NoError(t, err)
+	assert.NotEmpty(t, ipv4Pattern.FindString(getResp.Solution.Response))
+
+	postResp, err := c.PostContext(ctx, "https://httpbin.org/post", url.Values{
+		"key1": {"valueA"},
+	})
+	require.NoError(t, err)
+	assert.Contains(t, postResp.Solution.Response, "valueA")
+
+	// WithWaitInSeconds makes FlareSolverr hold the connection well past
+	// the deadline, so the call can only return through ctx.
+	shortCtx, shortCancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer shortCancel()
+
+	_, err = c.GetContext(shortCtx, "https://httpbin.org/ip",
+		flaresolverr.WithWaitInSeconds(10),
+	)
+	assert.ErrorIs(t, err, context.DeadlineExceeded)
+}
+
+func TestFlareSolverrErrorStatus(t *testing.T) {
+	c := newClient(t)
+
+	// Chrome rejects a URL with no scheme, so FlareSolverr fails the
+	// request and reports it in the response body rather than as a Go
+	// error. An unreachable host doesn't work here: Chrome renders its own
+	// error page and FlareSolverr returns "ok".
+	resp, err := c.Get("not-a-url",
+		flaresolverr.WithMaxTimeout(20000),
+	)
+	require.NoError(t, err)
+	assert.Equal(t, "error", string(resp.Status))
+	assert.NotEmpty(t, resp.Message)
 }

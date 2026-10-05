@@ -2,6 +2,7 @@ package flaresolverr
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -20,13 +21,19 @@ type Config struct {
 	BaseURL string
 	// Global Timeout to solve the challenge in milliseconds. Default: No timeout.
 	Timeout int
+	// HTTPClient is used to call the Flaresolverr API. Set its Timeout to
+	// bound calls made without a context deadline; keep it above the
+	// challenge timeout, or long solves get cut off. Default: an
+	// http.Client with no timeout.
+	HTTPClient *http.Client
 }
 
 // Client is a simple wrapper around the general Flaresolverr and represents
 // a client to talk with Flaresolverr API.
 type Client struct {
-	baseURL string
-	timeout int
+	baseURL    string
+	timeout    int
+	httpClient *http.Client
 }
 
 // NewClient is the constructor for Flaresolverr API Client.
@@ -43,9 +50,15 @@ func NewClient(c Config) (*Client, error) {
 		baseURL = c.BaseURL
 	}
 
+	httpClient := c.HTTPClient
+	if httpClient == nil {
+		httpClient = new(http.Client)
+	}
+
 	return &Client{
-		baseURL: baseURL,
-		timeout: c.Timeout,
+		baseURL:    baseURL,
+		timeout:    c.Timeout,
+		httpClient: httpClient,
 	}, nil
 }
 
@@ -155,13 +168,19 @@ func WithDisableMedia(v bool) Option {
 	}
 }
 
-// Get requests a web page with the request.get command and returns the
-// whole Response.
+// Get is GetContext with context.Background.
+func (c *Client) Get(u string, opts ...Option) (Response, error) {
+	return c.GetContext(context.Background(), u, opts...)
+}
+
+// GetContext requests a web page with the request.get command and returns
+// the whole Response. The ctx bounds the HTTP call to Flaresolverr, which
+// stays blocked until the challenge is solved or maxTimeout expires.
 // For more detail, refer to https://github.com/FlareSolverr/FlareSolverr#-requestget.
 //
 // Sessions and proxies are not yet supported by this client; see the README
 // for details.
-func (c *Client) Get(u string, opts ...Option) (Response, error) {
+func (c *Client) GetContext(ctx context.Context, u string, opts ...Option) (Response, error) {
 	p := requestParams{
 		Cmd:        get,
 		URL:        u,
@@ -176,16 +195,22 @@ func (c *Client) Get(u string, opts ...Option) (Response, error) {
 		return Response{}, err
 	}
 
-	return c.requestURL(b)
+	return c.requestURL(ctx, b)
 }
 
-// Post requests a web page with the request.post command and returns the
-// whole Response.
+// Post is PostContext with context.Background.
+func (c *Client) Post(u string, postData url.Values, opts ...Option) (Response, error) {
+	return c.PostContext(context.Background(), u, postData, opts...)
+}
+
+// PostContext requests a web page with the request.post command and returns
+// the whole Response. The ctx bounds the HTTP call to Flaresolverr, as in
+// GetContext.
 // For more detail, refer to https://github.com/FlareSolverr/FlareSolverr#-requestpost.
 //
 // Sessions and proxies are not yet supported by this client; see the README
 // for details.
-func (c *Client) Post(u string, postData url.Values, opts ...Option) (Response, error) {
+func (c *Client) PostContext(ctx context.Context, u string, postData url.Values, opts ...Option) (Response, error) {
 	p := requestParams{
 		Cmd:        post,
 		URL:        u,
@@ -201,18 +226,23 @@ func (c *Client) Post(u string, postData url.Values, opts ...Option) (Response, 
 		return Response{}, err
 	}
 
-	return c.requestURL(b)
+	return c.requestURL(ctx, b)
 }
 
-func (c *Client) requestURL(cmd []byte) (Response, error) {
-	client := new(http.Client)
-	r, err := client.Post(c.baseURL, contentApplicationJSON, bytes.NewReader(cmd))
+func (c *Client) requestURL(ctx context.Context, cmd []byte) (Response, error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.baseURL, bytes.NewReader(cmd))
 	if err != nil {
 		return Response{}, err
 	}
+	req.Header.Set("Content-Type", contentApplicationJSON)
+
+	r, err := c.httpClient.Do(req)
+	if err != nil {
+		return Response{}, err
+	}
+	defer r.Body.Close()
 
 	b, err := io.ReadAll(r.Body)
-	defer r.Body.Close()
 	if err != nil {
 		return Response{}, err
 	}

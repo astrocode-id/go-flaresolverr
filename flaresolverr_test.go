@@ -1,15 +1,20 @@
 package flaresolverr
 
 import (
+	"context"
 	"encoding/json"
+	"errors"
 	"io"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestClient_Get(t *testing.T) {
@@ -337,4 +342,73 @@ CDN-Loop: cloudflare
 			assert.Equal(t, test.expected, resp)
 		})
 	}
+}
+
+// hangingServer stands in for a Flaresolverr instance stuck on a challenge:
+// it never responds until the client gives up.
+func hangingServer(t *testing.T) *httptest.Server {
+	t.Helper()
+
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// net/http only notices the client hanging up, and cancels
+		// r.Context(), once the request body has been read to EOF.
+		_, err := io.Copy(io.Discard, r.Body)
+		assert.NoError(t, err)
+		<-r.Context().Done()
+	}))
+	t.Cleanup(ts.Close)
+
+	return ts
+}
+
+func TestClient_Context(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		desc string
+		call func(ctx context.Context, c *Client) (Response, error)
+	}{
+		{
+			desc: "GetContext returns when ctx deadline expires",
+			call: func(ctx context.Context, c *Client) (Response, error) {
+				return c.GetContext(ctx, "https://try.me")
+			},
+		},
+		{
+			desc: "PostContext returns when ctx deadline expires",
+			call: func(ctx context.Context, c *Client) (Response, error) {
+				return c.PostContext(ctx, "https://try.me", url.Values{"q": {"test1"}})
+			},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.desc, func(t *testing.T) {
+			t.Parallel()
+
+			c, err := NewClient(Config{BaseURL: hangingServer(t).URL})
+			require.NoError(t, err)
+
+			ctx, cancel := context.WithTimeout(context.Background(), 50*time.Millisecond)
+			defer cancel()
+
+			resp, err := test.call(ctx, c)
+			assert.ErrorIs(t, err, context.DeadlineExceeded)
+			assert.Equal(t, Response{}, resp)
+		})
+	}
+}
+
+func TestClient_HTTPClientTimeout(t *testing.T) {
+	t.Parallel()
+
+	c, err := NewClient(Config{
+		BaseURL:    hangingServer(t).URL,
+		HTTPClient: &http.Client{Timeout: 50 * time.Millisecond},
+	})
+	require.NoError(t, err)
+
+	_, err = c.Get("https://try.me")
+	var netErr net.Error
+	require.True(t, errors.As(err, &netErr), "got %v", err)
+	assert.True(t, netErr.Timeout())
 }

@@ -11,7 +11,7 @@
 1. Install [FlareSolverr](https://github.com/FlareSolverr/FlareSolverr#installation)
 2. Get [go-flaresolverr](https://github.com/astrocode-id/go-flaresolverr)
 ```shell
-go get github.com/astrocode-id/go-flaresolverr
+go get github.com/astrocode-id/go-flaresolverr/v2
 ```
 
 ## Examples
@@ -27,12 +27,12 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/astrocode-id/go-flaresolverr"
+	"github.com/astrocode-id/go-flaresolverr/v2"
 )
 
 func main() {
 	c, err := flaresolverr.NewClient(flaresolverr.Config{
-		BaseURL: baseURL,
+		BaseURL: "http://localhost:8191/v1",
 	})
 	if err != nil {
 		log.Fatal(err)
@@ -64,12 +64,12 @@ import (
 	"log"
 	"net/url"
 
-	"github.com/astrocode-id/go-flaresolverr"
+	"github.com/astrocode-id/go-flaresolverr/v2"
 )
 
 func main() {
 	c, err := flaresolverr.NewClient(flaresolverr.Config{
-		BaseURL: baseURL,
+		BaseURL: "http://localhost:8191/v1",
 	})
 	if err != nil {
 		log.Fatal(err)
@@ -104,6 +104,38 @@ supported by the FlareSolverr API:
 `session`, `session_ttl_minutes`, `proxy`, `returnScreenshot`, and
 `tabs_till_verify` are part of the FlareSolverr API but aren't supported by
 this client yet.
+
+### Context and timeouts
+`GetContext` and `PostContext` take a `context.Context` that bounds the HTTP
+call to FlareSolverr. Keep the deadline above `WithMaxTimeout`, since
+FlareSolverr holds the connection open until the challenge is solved.
+
+```go
+ctx, cancel := context.WithTimeout(context.Background(), 90*time.Second)
+defer cancel()
+
+r, err := c.GetContext(ctx, "https://httpbin.org/ip",
+	flaresolverr.WithMaxTimeout(60000),
+)
+```
+
+`Get` and `Post` use `context.Background()`. To bound them too, pass an
+`http.Client` with a `Timeout` through `Config.HTTPClient`.
+
+### Error handling
+The returned `error` covers transport and decoding failures only. When
+FlareSolverr itself fails (for example, the challenge times out), it replies
+with `"status": "error"`, and the client returns that `Response` with a nil
+error. Check `r.Status` yourself, as the examples above do:
+
+```go
+if r.Status != "ok" {
+	return errors.New(r.Message)
+}
+```
+
+Returning an error for these responses would change behavior for callers who
+already check `r.Status`, so it is left for a future major version.
 
 ### Session
 _TODO_: not supported yet.

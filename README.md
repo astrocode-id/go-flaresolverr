@@ -122,6 +122,21 @@ r, err := c.GetContext(ctx, "https://httpbin.org/ip",
 `Get` and `Post` use `context.Background()`. To bound them too, pass an
 `http.Client` with a `Timeout` through `Config.HTTPClient`.
 
+### Error handling
+The returned `error` covers transport and decoding failures only. When
+FlareSolverr itself fails (for example, the challenge times out), it replies
+with `"status": "error"`, and the client returns that `Response` with a nil
+error. Check `r.Status` yourself, as the examples above do:
+
+```go
+if r.Status != "ok" {
+	return errors.New(r.Message)
+}
+```
+
+Returning an error for these responses would change behavior for callers who
+already check `r.Status`, so it is left for a future major version.
+
 ### Session
 _TODO_: not supported yet.
 

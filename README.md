@@ -11,7 +11,7 @@
 1. Install [FlareSolverr](https://github.com/FlareSolverr/FlareSolverr#installation)
 2. Get [go-flaresolverr](https://github.com/astrocode-id/go-flaresolverr)
 ```shell
-go get github.com/astrocode-id/go-flaresolverr
+go get github.com/astrocode-id/go-flaresolverr/v2
 ```
 
 ## Examples
@@ -27,12 +27,12 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/astrocode-id/go-flaresolverr"
+	"github.com/astrocode-id/go-flaresolverr/v2"
 )
 
 func main() {
 	c, err := flaresolverr.NewClient(flaresolverr.Config{
-		BaseURL: baseURL,
+		BaseURL: "http://localhost:8191/v1",
 	})
 	if err != nil {
 		log.Fatal(err)
@@ -64,12 +64,12 @@ import (
 	"log"
 	"net/url"
 
-	"github.com/astrocode-id/go-flaresolverr"
+	"github.com/astrocode-id/go-flaresolverr/v2"
 )
 
 func main() {
 	c, err := flaresolverr.NewClient(flaresolverr.Config{
-		BaseURL: baseURL,
+		BaseURL: "http://localhost:8191/v1",
 	})
 	if err != nil {
 		log.Fatal(err)

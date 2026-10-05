@@ -1,10 +1,10 @@
 # CHANGELOG
 
-## Unreleased
+## v2.1.0
 
-- Add `GetContext` and `PostContext`; `Get` and `Post` now call them with `context.Background()`
-- Add `Config.HTTPClient`, and reuse one `http.Client` per `Client` instead of creating one per call
-- Fix README install command and imports to use the `/v2` module path
+- Add `GetContext` and `PostContext`; `Get` and `Post` now call them with `context.Background()` [#14](https://github.com/astrocode-id/go-flaresolverr/pull/14)
+- Add `Config.HTTPClient`, and reuse one `http.Client` per `Client` instead of creating one per call [#14](https://github.com/astrocode-id/go-flaresolverr/pull/14)
+- Fix README install command and imports to use the `/v2` module path [#14](https://github.com/astrocode-id/go-flaresolverr/pull/14)
 
 ## v2.0.2
 

@@ -105,6 +105,23 @@ supported by the FlareSolverr API:
 `tabs_till_verify` are part of the FlareSolverr API but aren't supported by
 this client yet.
 
+### Context and timeouts
+`GetContext` and `PostContext` take a `context.Context` that bounds the HTTP
+call to FlareSolverr. Keep the deadline above `WithMaxTimeout`, since
+FlareSolverr holds the connection open until the challenge is solved.
+
+```go
+ctx, cancel := context.WithTimeout(context.Background(), 90*time.Second)
+defer cancel()
+
+r, err := c.GetContext(ctx, "https://httpbin.org/ip",
+	flaresolverr.WithMaxTimeout(60000),
+)
+```
+
+`Get` and `Post` use `context.Background()`. To bound them too, pass an
+`http.Client` with a `Timeout` through `Config.HTTPClient`.
+
 ### Session
 _TODO_: not supported yet.
 
